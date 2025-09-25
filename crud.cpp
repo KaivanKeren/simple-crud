@@ -47,7 +47,7 @@ PGconn *connectDB(map<string, string> &env)
     return conn;
 }
 
-// tambah fungsi ini di atas (mis. setelah connectDB)
+// cek ada record dengan id tertentu
 bool recordExists(PGconn *conn, int id)
 {
     string query = "SELECT 1 FROM mahasiswa WHERE id = " + to_string(id) + " LIMIT 1;";

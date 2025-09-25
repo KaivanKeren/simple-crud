@@ -1,3 +1,6 @@
+.env
+crud
+
 # Compiled object files
 *.o
 *.obj
