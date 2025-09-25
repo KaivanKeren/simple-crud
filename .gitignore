@@ -1,0 +1,53 @@
+# Compiled object files
+*.o
+*.obj
+
+# Compiled dynamic libraries
+*.so
+*.dll
+*.dylib
+
+# Compiled static libraries
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Debug / profiling files
+*.pdb
+*.idb
+*.DS_Store
+*.dSYM/
+*.stackdump
+
+# VSCode settings
+.vscode/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# CMake build directories
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+build/
+out/
+bin/
+debug/
+release/
+
+# Other editor / OS junk
+*~
+*.swp
+*.tmp
+*.log
+
+# Backup files
+*.bak
+*.old
