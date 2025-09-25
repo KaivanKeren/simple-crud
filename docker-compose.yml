@@ -1,0 +1,22 @@
+services:
+  cpp_db:
+    image: postgres:latest
+    container_name: cpp_db
+    restart: unless-stopped
+    ports:
+      - "5439:5432"
+    environment:
+      POSTGRES_DB: cpp_db
+      POSTGRES_USER: user_cpp
+      POSTGRES_PASSWORD: password_cpp
+    volumes:
+      - cpp_pgdata:/var/lib/postgresql/data
+    networks:
+      cpp_network:
+    
+    
+volumes:
+  cpp_pgdata:
+    
+networks:
+  cpp_network:
