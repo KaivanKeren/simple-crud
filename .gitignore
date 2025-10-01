@@ -19,6 +19,8 @@ crud
 *.out
 *.app
 
+.idea
+
 # Debug / profiling files
 *.pdb
 *.idb
