@@ -3,6 +3,7 @@
 #include <sstream>
 #include <string>
 #include <map>
+#include <limits>
 #include <libpq-fe.h>
 
 using namespace std;
@@ -16,7 +17,7 @@ map<string, string> loadEnv(const string &filename)
     while (getline(file, line))
     {
         if (line.empty() || line[0] == '#')
-            continue; // skip kosong / comment
+            continue;
         string key, value;
         stringstream ss(line);
         if (getline(ss, key, '=') && getline(ss, value))
@@ -27,7 +28,6 @@ map<string, string> loadEnv(const string &filename)
     return env;
 }
 
-// connect DB
 PGconn *connectDB(map<string, string> &env)
 {
     string conninfo = "host=" + env["DB_HOST"] +
@@ -40,14 +40,13 @@ PGconn *connectDB(map<string, string> &env)
 
     if (PQstatus(conn) != CONNECTION_OK)
     {
-        cerr << "Koneksi gagal: " << PQerrorMessage(conn);
+        cerr << "Koneksi ke database gagal: " << PQerrorMessage(conn);
         PQfinish(conn);
         exit(1);
     }
     return conn;
 }
 
-// cek ada record dengan id tertentu
 bool recordExists(PGconn *conn, int id)
 {
     string query = "SELECT 1 FROM mahasiswa WHERE id = " + to_string(id) + " LIMIT 1;";
@@ -57,7 +56,7 @@ bool recordExists(PGconn *conn, int id)
     {
         cerr << "Gagal cek ID: " << PQerrorMessage(conn);
         PQclear(res);
-        return false; // anggap nggak ada bila error, atau sesuaikan sesuai kebutuhan
+        return false;
     }
 
     bool exists = (PQntuples(res) > 0);
@@ -65,7 +64,6 @@ bool recordExists(PGconn *conn, int id)
     return exists;
 }
 
-// CREATE
 void tambahData(PGconn *conn, string nama, int umur)
 {
     string query = "INSERT INTO mahasiswa (nama, umur) VALUES ('" + nama + "', " + to_string(umur) + ");";
@@ -77,15 +75,14 @@ void tambahData(PGconn *conn, string nama, int umur)
     }
     else
     {
-        cout << "Data berhasil ditambahkan!\n";
+        cout << "✅ Data berhasil ditambahkan!\n";
     }
     PQclear(res);
 }
 
-// READ
 void tampilData(PGconn *conn)
 {
-    PGresult *res = PQexec(conn, "SELECT id, nama, umur FROM mahasiswa;");
+    PGresult *res = PQexec(conn, "SELECT id, nama, umur FROM mahasiswa ORDER BY id ASC;");
 
     if (PQresultStatus(res) != PGRES_TUPLES_OK)
     {
@@ -96,16 +93,21 @@ void tampilData(PGconn *conn)
 
     int rows = PQntuples(res);
     cout << "\n=== Data Mahasiswa ===\n";
+    if (rows == 0)
+    {
+        cout << "Tidak ada data.\n";
+    }
+
     for (int i = 0; i < rows; i++)
     {
         cout << "ID: " << PQgetvalue(res, i, 0)
              << ", Nama: " << PQgetvalue(res, i, 1)
              << ", Umur: " << PQgetvalue(res, i, 2) << endl;
     }
+
     PQclear(res);
 }
 
-// UPDATE
 void ubahData(PGconn *conn, int id, string nama, int umur)
 {
     string query = "UPDATE mahasiswa SET nama='" + nama + "', umur=" + to_string(umur) +
@@ -124,13 +126,12 @@ void ubahData(PGconn *conn, int id, string nama, int umur)
         }
         else
         {
-            cout << "Data berhasil diubah!\n";
+            cout << "✅ Data berhasil diubah!\n";
         }
     }
     PQclear(res);
 }
 
-// DELETE
 void hapusData(PGconn *conn, int id)
 {
     string query = "DELETE FROM mahasiswa WHERE id=" + to_string(id) + ";";
@@ -148,15 +149,29 @@ void hapusData(PGconn *conn, int id)
         }
         else
         {
-            cout << "Data berhasil dihapus!\n";
+            cout << "✅ Data berhasil dihapus!\n";
         }
     }
     PQclear(res);
 }
 
+// fungsi bantu buat validasi input angka
+bool inputAngka(int &val)
+{
+    cin >> val;
+    if (cin.fail())
+    {
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        cout << "❌ Input tidak valid! Harus angka.\n";
+        return false;
+    }
+    return true;
+}
+
 int main()
 {
-    auto env = loadEnv(".env"); // baca file .env
+    auto env = loadEnv(".env");
     PGconn *conn = connectDB(env);
 
     int pilihan, id, umur;
@@ -164,14 +179,16 @@ int main()
 
     do
     {
-        cout << "\n=== MENU CRUD ===\n";
+        cout << "\n=== MENU CRUD Data Mahasiswa ===\n";
         cout << "1. Tambah Data\n";
         cout << "2. Tampilkan Data\n";
         cout << "3. Ubah Data\n";
         cout << "4. Hapus Data\n";
         cout << "5. Keluar\n";
         cout << "Pilih: ";
-        cin >> pilihan;
+
+        if (!inputAngka(pilihan))
+            continue;
 
         switch (pilihan)
         {
@@ -180,17 +197,20 @@ int main()
             cin.ignore();
             getline(cin, nama);
             cout << "Masukkan Umur: ";
-            cin >> umur;
+            if (!inputAngka(umur))
+                break;
             tambahData(conn, nama, umur);
             break;
+
         case 2:
             tampilData(conn);
             break;
+
         case 3:
             cout << "Masukkan ID yang mau diubah: ";
-            cin >> id;
+            if (!inputAngka(id))
+                break;
 
-            // cek dulu sebelum minta input lain
             if (!recordExists(conn, id))
             {
                 cout << "ID " << id << " tidak ditemukan!\n";
@@ -201,18 +221,22 @@ int main()
             cin.ignore();
             getline(cin, nama);
             cout << "Masukkan Umur baru: ";
-            cin >> umur;
+            if (!inputAngka(umur))
+                break;
             ubahData(conn, id, nama, umur);
             break;
 
         case 4:
             cout << "Masukkan ID yang mau dihapus: ";
-            cin >> id;
+            if (!inputAngka(id))
+                break;
             hapusData(conn, id);
             break;
+
         case 5:
             cout << "Keluar...\n";
             break;
+
         default:
             cout << "Pilihan tidak valid!\n";
         }
