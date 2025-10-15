@@ -1,5 +1,6 @@
 .env
-crud
+crud_data_mahasiswa
+.idea/
 
 # Compiled object files
 *.o
