@@ -5,6 +5,7 @@
 #include <map>
 #include <limits>
 #include <libpq-fe.h>
+#include <cstdlib>
 
 using namespace std;
 
@@ -64,9 +65,9 @@ bool recordExists(PGconn *conn, int id)
     return exists;
 }
 
-void tambahData(PGconn *conn, string nama, int umur)
+void tambahData(PGconn *conn, string nama, string nim, string jurusan, int umur)
 {
-    string query = "INSERT INTO mahasiswa (nama, umur) VALUES ('" + nama + "', " + to_string(umur) + ");";
+    string query = "INSERT INTO mahasiswa (nim, nama, jurusan, umur) VALUES ('" + nim + "', '" + nama + "', '" + jurusan + "', " + to_string(umur) + ");";
     PGresult *res = PQexec(conn, query.c_str());
 
     if (PQresultStatus(res) != PGRES_COMMAND_OK)
@@ -82,7 +83,7 @@ void tambahData(PGconn *conn, string nama, int umur)
 
 void tampilData(PGconn *conn)
 {
-    PGresult *res = PQexec(conn, "SELECT id, nama, umur FROM mahasiswa ORDER BY id ASC;");
+    PGresult *res = PQexec(conn, "SELECT id, nim, nama, jurusan, umur FROM mahasiswa ORDER BY id ASC;");
 
     if (PQresultStatus(res) != PGRES_TUPLES_OK)
     {
@@ -101,16 +102,18 @@ void tampilData(PGconn *conn)
     for (int i = 0; i < rows; i++)
     {
         cout << "ID: " << PQgetvalue(res, i, 0)
-             << ", Nama: " << PQgetvalue(res, i, 1)
-             << ", Umur: " << PQgetvalue(res, i, 2) << endl;
+             << ", NIM: " << PQgetvalue(res, i, 1)
+             << ", Nama: " << PQgetvalue(res, i, 2)
+             << ", Jurusan: " << PQgetvalue(res, i, 3)
+             << ", Umur: " << PQgetvalue(res, i, 4) << endl;
     }
 
     PQclear(res);
 }
 
-void ubahData(PGconn *conn, int id, string nama, int umur)
+void ubahData(PGconn *conn, int id, string nama, string nim, string jurusan, int umur)
 {
-    string query = "UPDATE mahasiswa SET nama='" + nama + "', umur=" + to_string(umur) +
+    string query = "UPDATE mahasiswa SET nim='" + nim + "', nama='" + nama + "', jurusan='" + jurusan + "', umur=" + to_string(umur) +
                    " WHERE id=" + to_string(id) + ";";
     PGresult *res = PQexec(conn, query.c_str());
 
@@ -175,7 +178,7 @@ int main()
     PGconn *conn = connectDB(env);
 
     int pilihan, id, umur;
-    string nama;
+    string nama, nim, jurusan;
 
     do
     {
@@ -196,10 +199,14 @@ int main()
             cout << "Masukkan Nama: ";
             cin.ignore();
             getline(cin, nama);
+            cout << "Masukkan NIM: ";
+            getline(cin, nim);
+            cout << "Masukkan Jurusan: ";
+            getline(cin, jurusan);
             cout << "Masukkan Umur: ";
             if (!inputAngka(umur))
                 break;
-            tambahData(conn, nama, umur);
+            tambahData(conn, nama, nim, jurusan, umur);
             break;
 
         case 2:
@@ -220,10 +227,14 @@ int main()
             cout << "Masukkan Nama baru: ";
             cin.ignore();
             getline(cin, nama);
+            cout << "Masukkan NIM baru: ";
+            getline(cin, nim);
+            cout << "Masukkan Jurusan baru: ";
+            getline(cin, jurusan);
             cout << "Masukkan Umur baru: ";
             if (!inputAngka(umur))
                 break;
-            ubahData(conn, id, nama, umur);
+            ubahData(conn, id, nama, nim, jurusan, umur);
             break;
 
         case 4:
