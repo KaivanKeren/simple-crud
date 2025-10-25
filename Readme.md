@@ -92,20 +92,12 @@ CREATE TABLE mahasiswa (
 
 ---
 
-### 4️⃣ Build the Program (with CMake)
+### 4️⃣ Build & Run the Program (with CMake)
 
 **Linux/macOS:**
 
 ```bash
 cmake -S . -B build && cmake --build build && ./build/crud_data_mahasiswa
-```
-
----
-
-### 5️⃣ Run the App
-
-```bash
-./crud_data_mahasiswa
 ```
 
 ---
