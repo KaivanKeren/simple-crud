@@ -97,9 +97,7 @@ CREATE TABLE mahasiswa (
 **Linux/macOS:**
 
 ```bash
-mkdir build && cd build
-cmake ..
-make
+cmake -S . -B build && cmake --build build && ./build/crud_data_mahasiswa
 ```
 
 ---
